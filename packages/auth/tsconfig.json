@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@digital-banking/shared": ["../shared/src"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

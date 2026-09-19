@@ -1,0 +1,117 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Payments</h1>
+      <div class="page-subtitle">Send and receive payments</div>
+    </div>
+  </div>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>New payment</mat-card-title>
+      <mat-card-subtitle>
+        Simulated against a mock payment processor — pick the outcome to demo below.
+      </mat-card-subtitle>
+    </mat-card-header>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-card-content>
+        <div class="field-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Account</mat-label>
+            <mat-select formControlName="accountId">
+              @for (account of accounts(); track account.id) {
+                <mat-option [value]="account.id">{{ accountLabel(account.id) }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.accountId.invalid && form.controls.accountId.touched) {
+              <mat-error>Choose an account</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Amount</mat-label>
+            <input matInput type="number" step="0.01" min="0.01" formControlName="amount" />
+            @if (form.controls.amount.invalid && form.controls.amount.touched) {
+              <mat-error>Enter an amount greater than 0</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Currency</mat-label>
+            <input matInput formControlName="currency" maxlength="3" style="text-transform: uppercase" />
+            @if (form.controls.currency.invalid && form.controls.currency.touched) {
+              <mat-error>Enter a valid 3-letter code</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>External reference</mat-label>
+            <input matInput formControlName="externalReference" placeholder="Optional" />
+          </mat-form-field>
+        </div>
+
+        <span class="section-title">Direction</span>
+        <mat-radio-group formControlName="direction" class="field-row radio-row">
+          @for (d of directions; track d) {
+            <mat-radio-button [value]="d">{{ d }}</mat-radio-button>
+          }
+        </mat-radio-group>
+
+        <span class="section-title">Demo outcome</span>
+        <mat-radio-group formControlName="simulate" class="field-row radio-row">
+          <mat-radio-button value="approve">Simulate approval</mat-radio-button>
+          <mat-radio-button value="decline">Simulate decline</mat-radio-button>
+        </mat-radio-group>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <mat-progress-spinner class="btn-spinner" diameter="18" mode="indeterminate" />
+          } @else {
+            <mat-icon>payments</mat-icon>
+          }
+          Submit payment
+        </button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+
+  @if (loading()) {
+    <div class="loading-row">
+      <mat-progress-spinner diameter="36" mode="indeterminate" />
+      <span>Loading payments&hellip;</span>
+    </div>
+  } @else if (payments().length === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-state-icon">payments</mat-icon>
+      <span class="empty-state-title">No payments yet</span>
+      <span class="empty-state-body">Submit your first payment using the form above.</span>
+    </div>
+  } @else {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>History</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="payment-rows">
+          @for (p of payments(); track p.id) {
+            <div class="payment-row">
+              <mat-icon>{{ p.direction === 'INBOUND' ? 'call_received' : 'call_made' }}</mat-icon>
+              <div class="payment-details">
+                <div>{{ p.direction }} &middot; {{ accountLabel(p.accountId) }}</div>
+                <div class="muted">{{ p.createdAt | date: 'medium' }}</div>
+                @if (p.failureReason) {
+                  <div class="muted error-text">{{ p.failureReason }}</div>
+                }
+              </div>
+              <div class="payment-amount">{{ formatMoney(p.amount, p.currency) }}</div>
+              <app-status-chip [status]="p.status" />
+              @if (p.status === 'COMPLETED') {
+                <button mat-icon-button [disabled]="reversing() === p.id" (click)="reverse(p)" title="Reverse">
+                  <mat-icon>undo</mat-icon>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

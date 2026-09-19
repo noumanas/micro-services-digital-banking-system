@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "@digital-banking/shared": ["../../packages/shared/src"],
+      "@digital-banking/config": ["../../packages/config/src"],
+      "@digital-banking/events": ["../../packages/events/src"],
+      "@digital-banking/auth": ["../../packages/auth/src"],
+      "@digital-banking/observability": ["../../packages/observability/src"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

@@ -1,0 +1,74 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Statement</h1>
+      <div class="page-subtitle">Your transaction history and activity summary</div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row">
+      <mat-progress-spinner diameter="36" mode="indeterminate" />
+      <span>Loading statement&hellip;</span>
+    </div>
+  } @else {
+    @if (activity(); as a) {
+      <div class="summary-grid">
+        <mat-card>
+          <mat-card-content>
+            <mat-icon class="summary-icon">receipt_long</mat-icon>
+            <div class="summary-label">Last {{ a.sinceDays }} days</div>
+            <div class="summary-value">{{ a.transactionCount }} transactions</div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card>
+          <mat-card-content>
+            <mat-icon class="summary-icon credit">call_received</mat-icon>
+            <div class="summary-label">Money in</div>
+            <div class="summary-value credit">{{ formatMoney(a.totalCredits, 'USD') }}</div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card>
+          <mat-card-content>
+            <mat-icon class="summary-icon debit">call_made</mat-icon>
+            <div class="summary-label">Money out</div>
+            <div class="summary-value debit">{{ formatMoney(a.totalDebits, 'USD') }}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Recent transactions</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (records().length === 0) {
+          <div class="empty-state">
+            <mat-icon class="empty-state-icon">receipt_long</mat-icon>
+            <span class="empty-state-title">No transactions in this period</span>
+            <span class="empty-state-body">Your activity will show up here once you start banking.</span>
+          </div>
+        } @else {
+          <div class="record-rows">
+            @for (r of records(); track r.id) {
+              <div class="record-row">
+                <mat-icon [class.credit]="r.direction === 'CREDIT'" [class.debit]="r.direction === 'DEBIT'">
+                  {{ r.direction === 'CREDIT' ? 'arrow_downward' : 'arrow_upward' }}
+                </mat-icon>
+                <div class="record-details">
+                  <div>{{ r.description || (r.type | titlecase) }}</div>
+                  <div class="muted">{{ r.occurredAt | date: 'medium' }}</div>
+                </div>
+                <div class="record-amount" [class.credit]="r.direction === 'CREDIT'" [class.debit]="r.direction === 'DEBIT'">
+                  {{ r.direction === 'CREDIT' ? '+' : '-' }}{{ formatMoney(r.amount, r.currency) }}
+                </div>
+                <app-status-chip [status]="r.status" />
+              </div>
+            }
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

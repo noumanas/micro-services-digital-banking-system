@@ -1,0 +1,106 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Transfers</h1>
+      <div class="page-subtitle">Move money between accounts</div>
+    </div>
+  </div>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>New transfer</mat-card-title>
+    </mat-card-header>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-card-content>
+        <div class="field-row">
+          <mat-form-field appearance="outline">
+            <mat-label>From account</mat-label>
+            <mat-select formControlName="sourceAccountId">
+              @for (account of accounts(); track account.id) {
+                <mat-option [value]="account.id">{{ accountLabel(account.id) }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.sourceAccountId.invalid && form.controls.sourceAccountId.touched) {
+              <mat-error>Choose a source account</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>To account</mat-label>
+            <input matInput formControlName="destinationAccountId" placeholder="Destination account ID" />
+            @if (form.controls.destinationAccountId.invalid && form.controls.destinationAccountId.touched) {
+              <mat-error>Destination account is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="field-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Amount</mat-label>
+            <input matInput type="number" step="0.01" min="0.01" formControlName="amount" />
+            @if (form.controls.amount.invalid && form.controls.amount.touched) {
+              <mat-error>Enter an amount greater than 0</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Currency</mat-label>
+            <input matInput formControlName="currency" maxlength="3" style="text-transform: uppercase" />
+            @if (form.controls.currency.invalid && form.controls.currency.touched) {
+              <mat-error>Enter a valid 3-letter currency code</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <mat-progress-spinner class="btn-spinner" diameter="18" mode="indeterminate" />
+          } @else {
+            <mat-icon>send</mat-icon>
+          }
+          Send transfer
+        </button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+
+  @if (loading()) {
+    <div class="loading-row">
+      <mat-progress-spinner diameter="36" mode="indeterminate" />
+      <span>Loading transfers&hellip;</span>
+    </div>
+  } @else if (transfers().length === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-state-icon">sync_alt</mat-icon>
+      <span class="empty-state-title">No transfers yet</span>
+      <span class="empty-state-body">Send your first transfer using the form above.</span>
+    </div>
+  } @else {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>History</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="transfer-rows">
+          @for (t of transfers(); track t.id) {
+            <div class="transfer-row">
+              <mat-icon>swap_horiz</mat-icon>
+              <div class="transfer-details">
+                <div>{{ accountLabel(t.sourceAccountId) }} &rarr; {{ accountLabel(t.destinationAccountId) }}</div>
+                <div class="muted">{{ t.createdAt | date: 'medium' }}</div>
+                @if (t.failureReason) {
+                  <div class="muted error-text">{{ t.failureReason }}</div>
+                }
+              </div>
+              <div class="transfer-amount">{{ formatMoney(t.amount, t.currency) }}</div>
+              <app-status-chip [status]="t.status" />
+              @if (t.status === 'PENDING' || t.status === 'FLAGGED') {
+                <button mat-icon-button [disabled]="cancelling() === t.id" (click)="cancel(t.id)" title="Cancel">
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

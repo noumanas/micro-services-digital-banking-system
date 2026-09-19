@@ -1,0 +1,183 @@
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--surface);
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.auth-brand-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 48px;
+  padding: 56px;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255, 255, 255, 0.08), transparent 40%),
+    linear-gradient(155deg, var(--brand-navy) 0%, var(--brand-navy-dark) 70%);
+  color: #fff;
+  position: relative;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+}
+
+.auth-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-size: 16px;
+
+  mat-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 22px;
+  }
+}
+
+.auth-brand-copy {
+  max-width: 420px;
+
+  h1 {
+    color: #fff;
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0;
+  }
+}
+
+.auth-features {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.auth-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+
+  mat-icon {
+    color: var(--brand-gold);
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 6px;
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    box-sizing: content-box;
+    flex-shrink: 0;
+  }
+}
+
+.auth-brand-footer {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.auth-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-mobile-brand {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--brand-navy);
+  margin-bottom: 24px;
+
+  @media (max-width: 900px) {
+    display: inline-flex;
+  }
+}
+
+.auth-heading {
+  margin-bottom: 24px;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 6px 0 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-submit {
+  height: 44px;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.auth-footer {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 24px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.tenant-helper-toggle {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+}
+
+.tenant-helper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+.tenant-helper-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}

@@ -1,0 +1,93 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Tenants</h1>
+      <div class="page-subtitle">Platform administration &middot; onboard a new bank or manage an existing one</div>
+    </div>
+  </div>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>New tenant</mat-card-title>
+    </mat-card-header>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Bank name</mat-label>
+          <input matInput formControlName="name" placeholder="Acme Bank" />
+          @if (form.controls.name.invalid && form.controls.name.touched) {
+            <mat-error>Enter a name of at least 2 characters</mat-error>
+          }
+        </mat-form-field>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" type="submit" [disabled]="creating()">
+          @if (creating()) {
+            <mat-progress-spinner class="btn-spinner" diameter="18" mode="indeterminate" />
+          } @else {
+            <mat-icon>add_business</mat-icon>
+          }
+          Create tenant
+        </button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+
+  @if (created(); as tenant) {
+    <mat-card class="result-card">
+      <mat-card-content>
+        <div class="result-header">
+          <mat-icon class="result-icon">check_circle</mat-icon>
+          <div>
+            <div class="result-title">{{ tenant.name }} is ready</div>
+            <div class="muted">Create its first admin, or add a customer, from the tenant page.</div>
+          </div>
+        </div>
+        <div class="tenant-id-row">
+          <code>{{ tenant.id }}</code>
+          <button mat-icon-button (click)="copyId(tenant.id)" title="Copy tenant ID">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-flat-button color="primary" [routerLink]="['/admin/tenants', tenant.id]">
+          <mat-icon>admin_panel_settings</mat-icon>
+          Set up this tenant
+        </a>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Existing tenants</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (loadingTenants()) {
+        <div class="loading-row">
+          <mat-progress-spinner diameter="32" mode="indeterminate" />
+        </div>
+      } @else if (tenants().length === 0) {
+        <div class="empty-state">
+          <mat-icon class="empty-state-icon">apartment</mat-icon>
+          <span class="empty-state-title">No tenants yet</span>
+          <span class="empty-state-body">Create the first one above.</span>
+        </div>
+      } @else {
+        <div class="tenant-rows">
+          @for (t of tenants(); track t.id) {
+            <a class="tenant-row" [routerLink]="['/admin/tenants', t.id]">
+              <mat-icon>apartment</mat-icon>
+              <div class="tenant-info">
+                <div>{{ t.name }}</div>
+                <div class="muted">{{ t.id }}</div>
+              </div>
+              <mat-icon class="chevron">chevron_right</mat-icon>
+            </a>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

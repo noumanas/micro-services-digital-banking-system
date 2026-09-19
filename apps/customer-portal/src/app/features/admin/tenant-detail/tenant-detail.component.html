@@ -1,0 +1,227 @@
+<div class="page">
+  <div class="page-header">
+    <a routerLink="/admin/tenants/new" class="back-link">
+      <mat-icon>arrow_back</mat-icon>
+      Tenants
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row">
+      <mat-progress-spinner diameter="36" mode="indeterminate" />
+      <span>Loading tenant&hellip;</span>
+    </div>
+  }
+  @if (!loading() && tenant(); as t) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ t.name }}</mat-card-title>
+        <mat-card-subtitle>Created {{ t.createdAt | date: 'medium' }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="tenant-id-row">
+          <span class="muted">Tenant ID (used to log in)</span>
+          <code>{{ t.id }}</code>
+          <button mat-icon-button (click)="copyId(t.id)" title="Copy tenant ID">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-button color="primary" [routerLink]="['/admin/customers/new']" [queryParams]="{ tenantId: t.id }">
+          <mat-icon>person_add</mat-icon>
+          Add a customer
+        </a>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Create a tenant admin</mat-card-title>
+        <mat-card-subtitle>They can log in directly with this tenant ID, their email, and password.</mat-card-subtitle>
+      </mat-card-header>
+      <form [formGroup]="form" (ngSubmit)="createAdmin()">
+        <mat-card-content>
+          <div class="field-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" autocomplete="off" />
+              @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+                <mat-error>Email is required</mat-error>
+              } @else if (form.controls.email.hasError('email') && form.controls.email.touched) {
+                <mat-error>Enter a valid email address</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="password"
+                autocomplete="new-password"
+              />
+              <mat-hint>At least 10 characters</mat-hint>
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="hidePassword.set(!hidePassword())"
+                [attr.aria-label]="'Toggle password visibility'"
+              >
+                <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+                <mat-error>Password is required</mat-error>
+              } @else if (form.controls.password.hasError('minlength') && form.controls.password.touched) {
+                <mat-error>Must be at least 10 characters</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Confirm password</mat-label>
+              <input
+                matInput
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="confirmPassword"
+                autocomplete="new-password"
+              />
+              @if (form.controls.confirmPassword.hasError('required') && form.controls.confirmPassword.touched) {
+                <mat-error>Please confirm the password</mat-error>
+              } @else if (form.errors?.['mismatch'] && form.controls.confirmPassword.touched) {
+                <mat-error>Passwords don't match</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-flat-button color="primary" type="submit" [disabled]="creatingAdmin()">
+            @if (creatingAdmin()) {
+              <mat-progress-spinner class="btn-spinner" diameter="18" mode="indeterminate" />
+            } @else {
+              <mat-icon>admin_panel_settings</mat-icon>
+            }
+            Create tenant admin
+          </button>
+        </mat-card-actions>
+      </form>
+    </mat-card>
+
+    @if (createdAdmin(); as admin) {
+      <mat-card class="result-card">
+        <mat-card-content>
+          <div class="result-header">
+            <mat-icon class="result-icon">check_circle</mat-icon>
+            <div>
+              <div class="result-title">{{ admin.email }} can log in now</div>
+              <div class="muted">Give them the tenant ID above, their email, and the password you set.</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <mat-card class="tabs-card">
+      <mat-tab-group animationDuration="150ms">
+        <mat-tab [label]="'Users (' + users().length + ')'">
+          <div class="tab-body">
+            @if (users().length === 0) {
+              <div class="empty-state">
+                <mat-icon class="empty-state-icon">group</mat-icon>
+                <span class="empty-state-title">No users yet</span>
+                <span class="empty-state-body">Create a tenant admin above, or add a customer.</span>
+              </div>
+            } @else {
+              <div class="row-list">
+                @for (u of users(); track u.id) {
+                  <div class="list-row">
+                    <mat-icon>{{ u.roles.includes('BANK_ADMIN') ? 'admin_panel_settings' : 'person' }}</mat-icon>
+                    <div class="row-info">
+                      <div>{{ u.email }}</div>
+                      <div class="muted">{{ u.roles.join(', ') }} &middot; {{ u.createdAt | date: 'medium' }}</div>
+                    </div>
+                    <app-status-chip [status]="u.status" />
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
+
+        <mat-tab [label]="'Customers (' + customers().length + ')'">
+          <div class="tab-body">
+            @if (customers().length === 0) {
+              <div class="empty-state">
+                <mat-icon class="empty-state-icon">badge</mat-icon>
+                <span class="empty-state-title">No customers yet</span>
+                <span class="empty-state-body">Add one from the tenant card above.</span>
+              </div>
+            } @else {
+              <div class="row-list">
+                @for (c of customers(); track c.id) {
+                  <div class="list-row">
+                    <mat-icon>badge</mat-icon>
+                    <div class="row-info">
+                      <div>{{ c.firstName || c.lastName ? (c.firstName ?? '') + ' ' + (c.lastName ?? '') : c.email }}</div>
+                      <div class="muted">{{ c.email }} &middot; {{ c.createdAt | date: 'medium' }}</div>
+                    </div>
+                    <app-status-chip [status]="c.kycStatus" />
+                    <app-status-chip [status]="c.status" />
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
+
+        <mat-tab [label]="'Accounts (' + accounts().length + ')'">
+          <div class="tab-body">
+            @if (accounts().length === 0) {
+              <div class="empty-state">
+                <mat-icon class="empty-state-icon">account_balance</mat-icon>
+                <span class="empty-state-title">No accounts yet</span>
+                <span class="empty-state-body">Accounts opened by this tenant's customers will show up here.</span>
+              </div>
+            } @else {
+              <div class="row-list">
+                @for (a of accounts(); track a.id) {
+                  <div class="list-row">
+                    <mat-icon>account_balance</mat-icon>
+                    <div class="row-info">
+                      <div>{{ a.type }} &middot; {{ a.currency }}</div>
+                      <div class="muted">{{ customerLabel(a.customerId) }} &middot; {{ a.createdAt | date: 'medium' }}</div>
+                    </div>
+                    <app-status-chip [status]="a.status" />
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
+
+        <mat-tab [label]="'Cards (' + cards().length + ')'">
+          <div class="tab-body">
+            @if (cards().length === 0) {
+              <div class="empty-state">
+                <mat-icon class="empty-state-icon">credit_card</mat-icon>
+                <span class="empty-state-title">No cards yet</span>
+                <span class="empty-state-body">Cards issued to this tenant's customers will show up here.</span>
+              </div>
+            } @else {
+              <div class="row-list">
+                @for (c of cards(); track c.id) {
+                  <div class="list-row">
+                    <mat-icon>credit_card</mat-icon>
+                    <div class="row-info">
+                      <div>{{ c.type }} &middot; &bull;&bull;&bull;&bull; {{ c.last4 }}</div>
+                      <div class="muted">{{ customerLabel(c.customerId) }} &middot; limit {{ formatMoney(c.dailyLimit, accountCurrency(c.accountId)) }}</div>
+                    </div>
+                    <app-status-chip [status]="c.status" />
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card>
+  }
+</div>

@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("REPORTING_DATABASE_URL")
+}
+
+// A denormalized read-model, deliberately separate from any transactional
+// database (PRD section 43: "reporting should preferably read from a
+// dedicated reporting/read model rather than putting heavy analytical
+// queries on the transactional ledger database"). Built entirely from
+// consumed events — never a live call into another service.
+//
+// Covers transfers, payments, and card spend (the customer-facing money
+// movements). Manual staff ledger postings, fee schedules, settlement
+// batches, and reconciliation are out of scope for this first cut — see
+// PRD section 43's full report list for what a later phase would add.
+model TransactionRecord {
+  id                   String    @id
+  tenantId             String
+  customerId           String
+  type                 String // TRANSFER | PAYMENT | CARD
+  direction            String // DEBIT | CREDIT
+  amount               Int
+  currency             String
+  status               String // PENDING | COMPLETED | FAILED
+  description          String?
+  destinationAccountId String? // TRANSFER only — used to generate the receiving customer's CREDIT record
+  occurredAt           DateTime
+  updatedAt            DateTime  @updatedAt
+
+  @@index([tenantId, customerId, occurredAt])
+  @@index([tenantId, type, status])
+  @@map("transaction_records")
+}
+
+// Local read-model from account-service's AccountCreated (PRD section 23) —
+// used to resolve the *other* party in a transfer (the destination
+// customer) without ever calling account-service directly.
+model AccountOwnership {
+  tenantId   String
+  accountId  String
+  customerId String
+  currency   String
+  updatedAt  DateTime @updatedAt
+
+  @@id([tenantId, accountId])
+  @@map("account_ownership")
+}
+
+model DeadLetter {
+  id           String   @id @default(uuid())
+  consumerName String
+  topic        String
+  eventId      String?
+  eventType    String?
+  payload      Json?
+  rawValue     String
+  errorMessage String
+  retryCount   Int
+  createdAt    DateTime @default(now())
+
+  @@map("dead_letters")
+}

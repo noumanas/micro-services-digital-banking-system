@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.turbo/
+.nx/
+pnpm-lock.yaml.bak
+infrastructure/docker/volumes/
+generated/
+nohup.out

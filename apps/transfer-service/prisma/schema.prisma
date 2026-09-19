@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TRANSFER_DATABASE_URL")
+}
+
+// The saga's own state machine (PRD section 31): PENDING -> COMPLETED, or
+// PENDING -> FAILED/FLAGGED/CANCELLED. Never mutated outside these
+// transitions, and idempotencyKey guarantees a retried request never
+// creates a second transfer (PRD section 21).
+model Transfer {
+  id                    String    @id @default(uuid())
+  tenantId              String
+  customerId            String
+  idempotencyKey        String
+  sourceAccountId       String
+  destinationAccountId  String
+  amount                Int
+  currency              String
+  status                String    @default("PENDING") // PENDING | COMPLETED | FAILED | FLAGGED | CANCELLED
+  failureReason         String?
+  journalEntryId        String?
+  createdAt             DateTime  @default(now())
+  completedAt           DateTime?
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, customerId, createdAt])
+  @@map("transfers")
+}
+
+// Local read-model populated by consuming account-service's AccountCreated
+// — never a live cross-service call (PRD section 23). Used both for
+// self-scoping (you can only debit your own account) and to validate the
+// destination exists before even starting the saga.
+model AccountOwnership {
+  tenantId   String
+  accountId  String
+  customerId String
+  currency   String
+  updatedAt  DateTime @updatedAt
+
+  @@id([tenantId, accountId])
+  @@map("account_ownership")
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid())
+  tenantId    String
+  eventType   String
+  payload     Json
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([published, createdAt])
+  @@map("outbox_events")
+}
+
+model DeadLetter {
+  id           String   @id @default(uuid())
+  consumerName String
+  topic        String
+  eventId      String?
+  eventType    String?
+  payload      Json?
+  rawValue     String
+  errorMessage String
+  retryCount   Int
+  createdAt    DateTime @default(now())
+
+  @@map("dead_letters")
+}

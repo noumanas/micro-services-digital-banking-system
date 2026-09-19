@@ -1,0 +1,93 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav
+    class="shell-nav"
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="sidenavOpened()"
+    (openedChange)="sidenavOpened.set($event)"
+  >
+    <div class="brand">
+      <span class="brand-mark">
+        <mat-icon>account_balance</mat-icon>
+      </span>
+      <div class="brand-text">
+        <span class="brand-name">Digital Banking</span>
+        <span class="brand-sub">Customer Portal</span>
+      </div>
+    </div>
+
+    <mat-nav-list class="nav-list">
+      @for (item of navItems; track item.path) {
+        <a mat-list-item [routerLink]="item.path" routerLinkActive="active-link" class="nav-item">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+
+      @if (isSuperAdmin) {
+        <div class="nav-section-label">Administration</div>
+        @for (item of adminNavItems; track item.path) {
+          <a mat-list-item [routerLink]="item.path" routerLinkActive="active-link" class="nav-item">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+      }
+    </mat-nav-list>
+
+    <div class="nav-footer">
+      <button mat-stroked-button class="logout-btn" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Sign out
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="shell-toolbar">
+      @if (isMobile()) {
+        <button mat-icon-button (click)="toggleNav()" aria-label="Toggle navigation">
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
+      <span class="spacer"></span>
+
+      @if (!isStaff) {
+        <a
+          mat-icon-button
+          routerLink="/notifications"
+          routerLinkActive="toolbar-icon-active"
+          matTooltip="Notifications"
+          aria-label="Notifications"
+        >
+          <mat-icon>notifications</mat-icon>
+        </a>
+
+        <a
+          mat-icon-button
+          routerLink="/profile"
+          routerLinkActive="toolbar-icon-active"
+          matTooltip="Profile & KYC"
+          aria-label="Profile"
+        >
+          <mat-icon>badge</mat-icon>
+        </a>
+
+        <span class="toolbar-divider"></span>
+      }
+
+      <span class="role-badge" [class]="'tier-' + roleTier">
+        <mat-icon>{{ roleIcon }}</mat-icon>
+        {{ primaryRole }}
+      </span>
+      <span class="user-avatar" [class]="'tier-' + roleTier" [matTooltip]="user?.roles?.join(', ') ?? ''">
+        {{ initials }}
+      </span>
+
+      <button mat-icon-button class="logout-icon" (click)="logout()" matTooltip="Sign out" aria-label="Sign out">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <router-outlet />
+  </mat-sidenav-content>
+</mat-sidenav-container>

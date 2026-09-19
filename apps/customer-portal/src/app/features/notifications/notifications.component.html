@@ -1,0 +1,39 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Notifications</h1>
+      <div class="page-subtitle">Alerts about your accounts and transactions</div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row">
+      <mat-progress-spinner diameter="36" mode="indeterminate" />
+      <span>Loading notifications&hellip;</span>
+    </div>
+  } @else if (notifications().length === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-state-icon">notifications_none</mat-icon>
+      <span class="empty-state-title">No notifications yet</span>
+      <span class="empty-state-body">You're all caught up.</span>
+    </div>
+  } @else {
+    <mat-card>
+      <mat-card-content>
+        <div class="notification-rows">
+          @for (n of notifications(); track n.id) {
+            <div class="notification-row">
+              <mat-icon>{{ channelIcon(n.channel) }}</mat-icon>
+              <div class="notification-details">
+                <div class="notification-subject">{{ n.subject }}</div>
+                <div class="muted">{{ n.body }}</div>
+                <div class="muted">{{ n.createdAt | date: 'medium' }} &middot; {{ n.channel }}</div>
+              </div>
+              <app-status-chip [status]="n.status" />
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

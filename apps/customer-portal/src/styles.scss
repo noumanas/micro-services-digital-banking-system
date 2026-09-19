@@ -1,0 +1,302 @@
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$azure-palette,
+      tertiary: mat.$orange-palette,
+    ),
+    typography: (
+      brand-family: 'Manrope',
+      plain-family: 'Inter',
+      bold-weight: 700,
+      medium-weight: 600,
+    ),
+    density: -1,
+  ));
+}
+
+:root {
+  --brand-navy: #002f65;
+  --brand-navy-dark: #001b3f;
+  --brand-gold: #a6741c;
+  --brand-gold-soft: #f5ecd8;
+
+  --surface: #ffffff;
+  --surface-sunken: #f4f6f9;
+  --border-subtle: #e2e6ec;
+  --border-strong: #c7ced9;
+
+  --text-primary: #101b2d;
+  --text-secondary: #566178;
+  --text-tertiary: #8993a6;
+
+  --success: #187d43;
+  --success-bg: #e5f5ec;
+  --warn: #a15c00;
+  --warn-bg: #fdf1de;
+  --danger: #b3261e;
+  --danger-bg: #fbeae9;
+  --neutral-bg: #eaedf2;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --shadow-sm: 0 1px 2px rgba(16, 27, 45, 0.06), 0 1px 1px rgba(16, 27, 45, 0.04);
+  --shadow-md: 0 8px 24px rgba(16, 27, 45, 0.08), 0 2px 6px rgba(16, 27, 45, 0.05);
+
+  --font-brand: 'Manrope', 'Helvetica Neue', sans-serif;
+  --font-body: 'Inter', 'Helvetica Neue', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+// mat-icon renders ligature icons with the class "material-icons" by
+// default (Angular Material's own default font-set class) — the font we
+// actually load in index.html is "Material Symbols Outlined", so without
+// this mapping the browser has no font for that class and falls back to
+// printing the ligature name itself (e.g. "account_balance") as plain text.
+.material-icons {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-brand);
+  color: var(--text-primary);
+  text-wrap: balance;
+  margin: 0;
+}
+
+::selection {
+  background: var(--brand-navy);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 32px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+
+  @media (max-width: 640px) {
+    padding: 20px 16px 48px;
+    gap: 18px;
+  }
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .page-subtitle {
+    margin-top: 4px;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.field-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  > * {
+    flex: 1 1 200px;
+  }
+}
+
+.helper-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: -8px 0 4px;
+}
+
+// Cards get a consistent, slightly softer elevation than Material's default —
+// flat borders read calmer for a data-dense finance UI than heavy shadows.
+mat-card.mat-mdc-card {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm) !important;
+  background: var(--surface);
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 11px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  &.status-ok {
+    background: var(--success-bg);
+    color: var(--success);
+  }
+
+  &.status-warn {
+    background: var(--warn-bg);
+    color: var(--warn);
+  }
+
+  &.status-error {
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+
+  &.status-neutral {
+    background: var(--neutral-bg);
+    color: var(--text-secondary);
+  }
+}
+
+.empty-state {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+
+  .empty-state-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+
+  .empty-state-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 15px;
+  }
+
+  .empty-state-body {
+    font-size: 13px;
+    max-width: 360px;
+  }
+}
+
+.loading-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 56px 24px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+// Skeleton placeholder for content that hasn't loaded yet — used instead of a
+// bare spinner where a shape hint (a card, a row) reduces perceived wait time.
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--neutral-bg);
+  border-radius: var(--radius-sm);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    animation: skeleton-sweep 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.btn-spinner {
+  display: inline-flex;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.section-title {
+  font-family: var(--font-brand);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}

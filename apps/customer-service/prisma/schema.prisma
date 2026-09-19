@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("CUSTOMER_DATABASE_URL")
+}
+
+// Customer.id intentionally matches identity-service's User.id — the two
+// records are created 1:1 (this one asynchronously, via consuming
+// UserRegistered) and joined only through that shared id, never a live
+// cross-service DB call (PRD section 23).
+model Customer {
+  id        String   @id
+  tenantId  String
+  email     String
+  firstName String?
+  lastName  String?
+  phone     String?
+  status    String   @default("ACTIVE") // ACTIVE | SUSPENDED | CLOSED
+  kycStatus String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("customers")
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid())
+  tenantId    String
+  eventType   String
+  payload     Json
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([published, createdAt])
+  @@map("outbox_events")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  tenantId      String
+  actorUserId   String?
+  action        String
+  resource      String
+  result        String
+  correlationId String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@map("audit_logs")
+}
+
+// PRD section 22: poison events that exhaust their retries land here instead
+// of being dropped, so operators can inspect and replay them.
+model DeadLetter {
+  id           String   @id @default(uuid())
+  consumerName String
+  topic        String
+  eventId      String?
+  eventType    String?
+  payload      Json?
+  rawValue     String
+  errorMessage String
+  retryCount   Int
+  createdAt    DateTime @default(now())
+
+  @@map("dead_letters")
+}

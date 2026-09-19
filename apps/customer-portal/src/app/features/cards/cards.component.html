@@ -1,0 +1,130 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Cards</h1>
+      <div class="page-subtitle">Issue and manage your cards</div>
+    </div>
+  </div>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Issue a new card</mat-card-title>
+    </mat-card-header>
+    <form [formGroup]="form" (ngSubmit)="issue()">
+      <mat-card-content>
+        <div class="field-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Account</mat-label>
+            <mat-select formControlName="accountId">
+              @for (account of accounts(); track account.id) {
+                <mat-option [value]="account.id">{{ accountLabel(account.id) }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.accountId.invalid && form.controls.accountId.touched) {
+              <mat-error>Choose an account</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Card type</mat-label>
+            <mat-select formControlName="type">
+              @for (type of cardTypes; track type) {
+                <mat-option [value]="type">{{ type }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Daily limit</mat-label>
+            <input matInput type="number" min="0" step="1" formControlName="dailyLimit" />
+            <mat-hint>In the account's currency, e.g. 500 = 500.00</mat-hint>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" type="submit" [disabled]="issuing()">
+          @if (issuing()) {
+            <mat-progress-spinner class="btn-spinner" diameter="18" mode="indeterminate" />
+          } @else {
+            <mat-icon>add_card</mat-icon>
+          }
+          Issue card
+        </button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+
+  @if (loading()) {
+    <div class="loading-row">
+      <mat-progress-spinner diameter="36" mode="indeterminate" />
+      <span>Loading cards&hellip;</span>
+    </div>
+  } @else if (cards().length === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-state-icon">credit_card</mat-icon>
+      <span class="empty-state-title">No cards yet</span>
+      <span class="empty-state-body">Issue one above to start spending.</span>
+    </div>
+  } @else {
+    <div class="card-grid">
+      @for (card of cards(); track card.id) {
+        <mat-card class="card-item">
+          <div class="card-visual" [class.blocked]="card.status === 'BLOCKED' || card.status === 'CLOSED'">
+            <div class="card-visual-top">
+              <mat-icon>{{ card.type === 'VIRTUAL' ? 'contactless' : 'credit_card' }}</mat-icon>
+              <app-status-chip [status]="card.status" />
+            </div>
+            <div class="card-number">&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; {{ card.last4 }}</div>
+            <div class="card-visual-bottom">
+              <span>{{ card.type }}</span>
+              <span>Limit {{ cardLimitLabel(card) }}</span>
+            </div>
+          </div>
+
+          <mat-card-content>
+            <div class="muted">{{ accountLabel(card.accountId) }}</div>
+
+            @if (simulatingId() === card.id) {
+              <form [formGroup]="simulateForm" (ngSubmit)="simulatePurchase(card)" class="simulate-form">
+                <div class="field-row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Amount</mat-label>
+                    <input matInput type="number" step="0.01" min="0.01" formControlName="amount" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Currency</mat-label>
+                    <input matInput formControlName="currency" maxlength="3" style="text-transform: uppercase" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Merchant</mat-label>
+                    <input matInput formControlName="merchantName" />
+                  </mat-form-field>
+                </div>
+                <div class="simulate-actions">
+                  <button mat-flat-button color="primary" type="submit" [disabled]="acting() === card.id">
+                    Confirm purchase
+                  </button>
+                  <button mat-button type="button" (click)="toggleSimulate(card)">Cancel</button>
+                </div>
+              </form>
+            }
+          </mat-card-content>
+
+          @if (card.status !== 'CLOSED') {
+            <mat-card-actions>
+              @if (card.status === 'PENDING') {
+                <button mat-stroked-button [disabled]="acting() === card.id" (click)="activate(card)">Activate</button>
+              }
+              @if (card.status === 'ACTIVE') {
+                <button mat-stroked-button color="warn" [disabled]="acting() === card.id" (click)="block(card)">
+                  Block
+                </button>
+                @if (simulatingId() !== card.id) {
+                  <button mat-button (click)="toggleSimulate(card)">Simulate purchase</button>
+                }
+              }
+            </mat-card-actions>
+          }
+        </mat-card>
+      }
+    </div>
+  }
+</div>

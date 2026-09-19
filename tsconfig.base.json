@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "paths": {
+      "@digital-banking/shared": ["packages/shared/src"],
+      "@digital-banking/shared/*": ["packages/shared/src/*"],
+      "@digital-banking/events": ["packages/events/src"],
+      "@digital-banking/events/*": ["packages/events/src/*"],
+      "@digital-banking/config": ["packages/config/src"],
+      "@digital-banking/config/*": ["packages/config/src/*"],
+      "@digital-banking/auth": ["packages/auth/src"],
+      "@digital-banking/auth/*": ["packages/auth/src/*"],
+      "@digital-banking/observability": ["packages/observability/src"],
+      "@digital-banking/observability/*": ["packages/observability/src/*"]
+    }
+  }
+}

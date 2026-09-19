@@ -1,0 +1,157 @@
+<div class="auth-shell">
+  <div class="auth-brand-panel">
+    <span class="auth-brand-mark">
+      <mat-icon>account_balance</mat-icon>
+      Digital Banking
+    </span>
+
+    <div class="auth-brand-copy">
+      <h1>Open an account in minutes.</h1>
+      <p>
+        Register, complete a quick identity check, and start moving money — accounts,
+        cards, and payments are ready as soon as verification clears.
+      </p>
+    </div>
+
+    <ul class="auth-features">
+      <li class="auth-feature">
+        <mat-icon>verified_user</mat-icon>
+        Fast, automated identity verification
+      </li>
+      <li class="auth-feature">
+        <mat-icon>account_balance_wallet</mat-icon>
+        Open current, savings, or wallet accounts
+      </li>
+      <li class="auth-feature">
+        <mat-icon>notifications_active</mat-icon>
+        Live notifications for every transaction
+      </li>
+    </ul>
+
+    <span class="auth-brand-footer">&copy; 2026 Digital Banking. For demonstration purposes.</span>
+  </div>
+
+  <div class="auth-form-panel">
+    <div class="auth-card">
+      <span class="auth-mobile-brand">
+        <mat-icon>account_balance</mat-icon>
+        Digital Banking
+      </span>
+
+      <div class="auth-heading">
+        <h1>Create your account</h1>
+        <p>Register as a new customer</p>
+      </div>
+
+      <button
+        mat-stroked-button
+        type="button"
+        class="tenant-helper-toggle"
+        (click)="showTenantHelper.set(!showTenantHelper())"
+      >
+        <mat-icon>add_business</mat-icon>
+        {{ showTenantHelper() ? 'Hide demo bank creator' : "Don't have a tenant? Create a demo bank" }}
+      </button>
+
+      @if (showTenantHelper()) {
+        <div class="tenant-helper">
+          <div class="tenant-helper-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bank name</mat-label>
+              <input matInput [formControl]="bankNameControl" placeholder="Acme Bank" />
+              @if (bankNameControl.invalid && bankNameControl.touched) {
+                <mat-error>Bank name is required</mat-error>
+              }
+            </mat-form-field>
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="createTenant()"
+              [disabled]="creatingTenant()"
+            >
+              @if (creatingTenant()) {
+                <mat-progress-spinner class="btn-spinner" diameter="18" mode="indeterminate" />
+              }
+              Create
+            </button>
+          </div>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Tenant ID</mat-label>
+          <input matInput formControlName="tenantId" />
+          @if (form.controls.tenantId.invalid && form.controls.tenantId.touched) {
+            <mat-error>Tenant ID is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+            <mat-error>Email is required</mat-error>
+          } @else if (form.controls.email.hasError('email') && form.controls.email.touched) {
+            <mat-error>Enter a valid email address</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            [type]="hidePassword() ? 'password' : 'text'"
+            formControlName="password"
+            autocomplete="new-password"
+          />
+          <mat-hint>At least 10 characters</mat-hint>
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="hidePassword.set(!hidePassword())"
+            [attr.aria-label]="'Toggle password visibility'"
+          >
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+            <mat-error>Password is required</mat-error>
+          } @else if (form.controls.password.hasError('minlength') && form.controls.password.touched) {
+            <mat-error>Password must be at least 10 characters</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirm password</mat-label>
+          <input
+            matInput
+            [type]="hidePassword() ? 'password' : 'text'"
+            formControlName="confirmPassword"
+            autocomplete="new-password"
+          />
+          @if (form.controls.confirmPassword.hasError('required') && form.controls.confirmPassword.touched) {
+            <mat-error>Please confirm your password</mat-error>
+          } @else if (form.errors?.['mismatch'] && form.controls.confirmPassword.touched) {
+            <mat-error>Passwords don't match</mat-error>
+          }
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" type="submit" class="full-width auth-submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <mat-progress-spinner class="btn-spinner" diameter="20" mode="indeterminate" />
+            Creating account&hellip;
+          } @else {
+            Create account
+          }
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <span>Already have an account?</span>
+        <a routerLink="/login">Log in</a>
+      </div>
+    </div>
+  </div>
+</div>

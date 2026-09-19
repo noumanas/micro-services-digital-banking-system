@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("NOTIFICATION_DATABASE_URL")
+}
+
+// One row per notification actually sent (or attempted) — the audit trail,
+// and what GET /v1/notifications reads back. This service produces no
+// domain events of its own, so there's no outbox here.
+model NotificationLog {
+  id         String   @id @default(uuid())
+  tenantId   String
+  customerId String
+  channel    String   @default("EMAIL") // EMAIL | SMS | PUSH | IN_APP
+  eventType  String // the domain event that triggered this notification
+  subject    String
+  body       String
+  status     String   @default("SENT") // SENT | FAILED
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId, customerId, createdAt])
+  @@map("notification_logs")
+}
+
+model DeadLetter {
+  id           String   @id @default(uuid())
+  consumerName String
+  topic        String
+  eventId      String?
+  eventType    String?
+  payload      Json?
+  rawValue     String
+  errorMessage String
+  retryCount   Int
+  createdAt    DateTime @default(now())
+
+  @@map("dead_letters")
+}

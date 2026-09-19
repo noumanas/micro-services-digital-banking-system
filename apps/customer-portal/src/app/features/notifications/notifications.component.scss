@@ -1,0 +1,36 @@
+.notification-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  mat-icon:first-child {
+    color: var(--brand-navy);
+    margin-top: 2px;
+  }
+}
+
+.notification-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-subject {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.muted {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}

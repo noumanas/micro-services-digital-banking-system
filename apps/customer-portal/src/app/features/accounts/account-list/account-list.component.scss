@@ -1,0 +1,45 @@
+.account-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 4px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--surface-sunken);
+  }
+
+  mat-icon:first-child {
+    color: var(--brand-navy);
+  }
+}
+
+.account-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.muted {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.account-status {
+  margin-left: auto;
+}
+
+.chevron {
+  color: var(--text-tertiary);
+}

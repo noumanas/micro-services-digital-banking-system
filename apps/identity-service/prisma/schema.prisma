@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("IDENTITY_DATABASE_URL")
+}
+
+// Every business entity carries a tenantId — see PRD section 25 (Multi-Tenancy).
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users User[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  tenantId     String
+  email        String
+  passwordHash String
+  roles        String[] @default(["CUSTOMER"])
+  status       String   @default("ACTIVE") // ACTIVE | LOCKED | DISABLED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  refreshTokens RefreshToken[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tenantId  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// Transactional Outbox Pattern — PRD section 20. Written in the same DB
+// transaction as the business row; a background publisher drains it to Kafka.
+model OutboxEvent {
+  id          String    @id @default(uuid())
+  tenantId    String
+  eventType   String
+  payload     Json
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([published, createdAt])
+  @@map("outbox_events")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  tenantId      String
+  actorUserId   String?
+  action        String
+  resource      String
+  result        String
+  correlationId String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@map("audit_logs")
+}

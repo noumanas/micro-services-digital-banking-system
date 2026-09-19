@@ -1,0 +1,82 @@
+<div class="page">
+  <div class="page-header">
+    <a routerLink="/accounts" class="back-link">
+      <mat-icon>arrow_back</mat-icon>
+      Accounts
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row">
+      <mat-progress-spinner diameter="36" mode="indeterminate" />
+      <span>Loading account&hellip;</span>
+    </div>
+  }
+  @if (!loading() && account(); as acc) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ acc.type }} &middot; {{ acc.currency }}</mat-card-title>
+        <mat-card-subtitle>{{ acc.id }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="balance-row">
+          <div>
+            <div class="muted">Available balance</div>
+            @if (balance(); as b) {
+              <div class="balance-value">{{ formatMoney(b.balance, b.currency) }}</div>
+            }
+          </div>
+          <app-status-chip [status]="acc.status" />
+        </div>
+      </mat-card-content>
+      @if (auth.hasPermission('account:activate') || auth.hasPermission('account:freeze')) {
+        <mat-card-actions>
+          @if (auth.hasPermission('account:activate') && acc.status === 'PENDING_ACTIVATION') {
+            <button mat-stroked-button [disabled]="acting()" (click)="activate()">Activate</button>
+          }
+          @if (auth.hasPermission('account:freeze') && acc.status === 'ACTIVE') {
+            <button mat-stroked-button [disabled]="acting()" (click)="freeze()">Freeze</button>
+          }
+          @if (auth.hasPermission('account:freeze') && acc.status === 'FROZEN') {
+            <button mat-stroked-button [disabled]="acting()" (click)="unfreeze()">Unfreeze</button>
+          }
+          @if (auth.hasPermission('account:close') && acc.status !== 'CLOSED') {
+            <button mat-stroked-button color="warn" [disabled]="acting()" (click)="close()">Close</button>
+          }
+        </mat-card-actions>
+      }
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Transaction history</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (entries().length === 0) {
+          <div class="empty-state">
+            <mat-icon class="empty-state-icon">receipt_long</mat-icon>
+            <span class="empty-state-title">No activity yet</span>
+            <span class="empty-state-body">Transactions on this account will show up here.</span>
+          </div>
+        } @else {
+          <div class="entry-rows">
+            @for (entry of entries(); track entry.journalEntryId + entry.direction + entry.createdAt) {
+              <div class="entry-row">
+                <mat-icon [class.credit]="entry.direction === 'CREDIT'" [class.debit]="entry.direction === 'DEBIT'">
+                  {{ entry.direction === 'CREDIT' ? 'arrow_downward' : 'arrow_upward' }}
+                </mat-icon>
+                <div class="entry-details">
+                  <div>{{ entryLabel(entry) }}</div>
+                  <div class="muted">{{ entry.createdAt | date: 'medium' }}</div>
+                </div>
+                <div class="entry-amount" [class.credit]="entry.direction === 'CREDIT'" [class.debit]="entry.direction === 'DEBIT'">
+                  {{ entry.direction === 'CREDIT' ? '+' : '-' }}{{ formatMoney(entry.amount, entry.currency) }}
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

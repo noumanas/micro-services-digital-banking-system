@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("FRAUD_DATABASE_URL")
+}
+
+// One row per transaction evaluated — the audit trail behind every
+// decision, and the basis for the velocity check (PRD section 15).
+model FraudCheck {
+  id             String   @id @default(uuid())
+  tenantId       String
+  transferId     String   @unique
+  sourceAccountId String
+  amount         Int
+  currency       String
+  decision       String // APPROVED | FLAGGED | BLOCKED
+  reason         String
+  createdAt      DateTime @default(now())
+
+  @@index([tenantId, sourceAccountId, createdAt])
+  @@map("fraud_checks")
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid())
+  tenantId    String
+  eventType   String
+  payload     Json
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([published, createdAt])
+  @@map("outbox_events")
+}
+
+model DeadLetter {
+  id           String   @id @default(uuid())
+  consumerName String
+  topic        String
+  eventId      String?
+  eventType    String?
+  payload      Json?
+  rawValue     String
+  errorMessage String
+  retryCount   Int
+  createdAt    DateTime @default(now())
+
+  @@map("dead_letters")
+}

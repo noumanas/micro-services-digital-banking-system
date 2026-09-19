@@ -1,0 +1,100 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Profile & KYC</h1>
+      <div class="page-subtitle">Manage your personal details and identity verification</div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row">
+      <mat-progress-spinner diameter="36" mode="indeterminate" />
+      <span>Loading profile&hellip;</span>
+    </div>
+  } @else {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Personal details</mat-card-title>
+        <mat-card-subtitle>{{ customer()?.email }}</mat-card-subtitle>
+      </mat-card-header>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <mat-card-content>
+          <div class="field-row">
+            <mat-form-field appearance="outline">
+              <mat-label>First name</mat-label>
+              <input matInput formControlName="firstName" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Last name</mat-label>
+              <input matInput formControlName="lastName" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Phone</mat-label>
+              <input matInput formControlName="phone" placeholder="+1 555 000 1234" />
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+            @if (saving()) {
+              <mat-progress-spinner class="btn-spinner" diameter="18" mode="indeterminate" />
+            }
+            Save changes
+          </button>
+        </mat-card-actions>
+      </form>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Identity verification (KYC)</mat-card-title>
+        <mat-card-subtitle class="kyc-subtitle">
+          Status
+          <app-status-chip [status]="customer()?.kycStatus ?? 'PENDING'" />
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (canSubmitKyc) {
+          <p class="helper-text">
+            Verification runs instantly against a mock provider in this environment — pick the outcome to
+            simulate below.
+          </p>
+          <mat-radio-group
+            [value]="kycSimulate()"
+            (change)="kycSimulate.set($event.value)"
+            class="field-row radio-row"
+          >
+            <mat-radio-button value="approve">Simulate approval</mat-radio-button>
+            <mat-radio-button value="reject">Simulate rejection</mat-radio-button>
+          </mat-radio-group>
+        } @else {
+          <div class="kyc-verified">
+            <mat-icon>verified</mat-icon>
+            <span>Your identity has already been verified — no further action needed.</span>
+          </div>
+        }
+
+        @if (verifications().length > 0) {
+          <span class="section-title verification-heading">History</span>
+          @for (v of verifications(); track v.id) {
+            <div class="verification-row">
+              <app-status-chip [status]="v.status" />
+              <span class="muted">{{ v.decisionReason }}</span>
+              <span class="muted">{{ v.createdAt | date: 'short' }}</span>
+            </div>
+          }
+        }
+      </mat-card-content>
+      @if (canSubmitKyc) {
+        <mat-card-actions>
+          <button mat-flat-button color="primary" (click)="submitKyc()" [disabled]="submittingKyc()">
+            @if (submittingKyc()) {
+              <mat-progress-spinner class="btn-spinner" diameter="18" mode="indeterminate" />
+            }
+            Submit verification
+          </button>
+        </mat-card-actions>
+      }
+    </mat-card>
+  }
+</div>

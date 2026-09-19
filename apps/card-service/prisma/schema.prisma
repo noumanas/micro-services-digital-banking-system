@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("CARD_DATABASE_URL")
+}
+
+// PRD section 13. The card itself never touches money — every authorized
+// transaction posts as a withdrawal against the linked account through
+// ledger-service, same as an outbound payment.
+model Card {
+  id           String    @id @default(uuid())
+  tenantId     String
+  customerId   String
+  accountId    String
+  type         String // VIRTUAL | PHYSICAL
+  last4        String
+  status       String    @default("PENDING") // PENDING | ACTIVE | BLOCKED | CLOSED
+  dailyLimit   Int
+  createdAt    DateTime  @default(now())
+  activatedAt  DateTime?
+  blockedAt    DateTime?
+
+  transactions CardTransaction[]
+
+  @@index([tenantId, customerId])
+  @@map("cards")
+}
+
+// One row per authorization attempt — approved or declined. This is the
+// audit trail behind CardTransactionReceived and the basis for the daily
+// spend limit check.
+model CardTransaction {
+  id             String   @id @default(uuid())
+  tenantId       String
+  cardId         String
+  accountId      String
+  amount         Int
+  currency       String
+  merchantName   String
+  status         String // APPROVED | DECLINED
+  declineReason  String?
+  journalEntryId String?
+  createdAt      DateTime @default(now())
+
+  card Card @relation(fields: [cardId], references: [id])
+
+  @@index([cardId, createdAt])
+  @@map("card_transactions")
+}
+
+// Local read-model from account-service's AccountCreated (PRD section 23).
+model AccountOwnership {
+  tenantId   String
+  accountId  String
+  customerId String
+  currency   String
+  updatedAt  DateTime @updatedAt
+
+  @@id([tenantId, accountId])
+  @@map("account_ownership")
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid())
+  tenantId    String
+  eventType   String
+  payload     Json
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([published, createdAt])
+  @@map("outbox_events")
+}
+
+model DeadLetter {
+  id           String   @id @default(uuid())
+  consumerName String
+  topic        String
+  eventId      String?
+  eventType    String?
+  payload      Json?
+  rawValue     String
+  errorMessage String
+  retryCount   Int
+  createdAt    DateTime @default(now())
+
+  @@map("dead_letters")
+}

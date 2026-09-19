@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("PAYMENT_DATABASE_URL")
+}
+
+// PRD section 11. Unlike transfer-service's saga, payment authorization
+// resolves synchronously against the provider (real card/ACH rails commonly
+// do too) — initiate, authorize, post, complete all happen in one request.
+model Payment {
+  id               String    @id @default(uuid())
+  tenantId         String
+  customerId       String
+  accountId        String
+  direction        String // INBOUND | OUTBOUND
+  amount           Int
+  currency         String
+  provider         String    @default("mock")
+  externalReference String?
+  idempotencyKey   String
+  status           String    @default("PENDING") // PENDING | AUTHORIZED | COMPLETED | FAILED | REVERSED
+  failureReason    String?
+  journalEntryId   String?
+  createdAt        DateTime  @default(now())
+  completedAt      DateTime?
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, customerId, createdAt])
+  @@map("payments")
+}
+
+// Local read-model from account-service's AccountCreated (PRD section 23).
+model AccountOwnership {
+  tenantId   String
+  accountId  String
+  customerId String
+  currency   String
+  updatedAt  DateTime @updatedAt
+
+  @@id([tenantId, accountId])
+  @@map("account_ownership")
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid())
+  tenantId    String
+  eventType   String
+  payload     Json
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([published, createdAt])
+  @@map("outbox_events")
+}
+
+model DeadLetter {
+  id           String   @id @default(uuid())
+  consumerName String
+  topic        String
+  eventId      String?
+  eventType    String?
+  payload      Json?
+  rawValue     String
+  errorMessage String
+  retryCount   Int
+  createdAt    DateTime @default(now())
+
+  @@map("dead_letters")
+}

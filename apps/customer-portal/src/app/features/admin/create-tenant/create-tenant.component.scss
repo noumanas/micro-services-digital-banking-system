@@ -1,0 +1,77 @@
+.result-card {
+  border-color: var(--success);
+}
+
+.result-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.result-icon {
+  color: var(--success);
+}
+
+.result-title {
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.muted {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.tenant-id-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  width: fit-content;
+
+  code {
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+}
+
+.tenant-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.tenant-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--surface-sunken);
+  }
+
+  mat-icon:first-child {
+    color: var(--brand-navy);
+  }
+}
+
+.tenant-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chevron {
+  color: var(--text-tertiary);
+}

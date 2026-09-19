@@ -1,0 +1,106 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Accounts</h1>
+      <div class="page-subtitle">
+        {{ isStaff ? 'Manage accounts across your tenant — activate, freeze, or close them' : 'Open and manage your accounts' }}
+      </div>
+    </div>
+  </div>
+
+  @if (isStaff) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Find an account</mat-card-title>
+        <mat-card-subtitle>Leave blank to see every account in your tenant, including ones pending activation.</mat-card-subtitle>
+      </mat-card-header>
+      <form [formGroup]="filterForm" (ngSubmit)="reload()">
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Customer ID</mat-label>
+            <input matInput formControlName="customerId" placeholder="Optional — narrow to one customer" />
+          </mat-form-field>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+            <mat-icon>search</mat-icon>
+            Search
+          </button>
+        </mat-card-actions>
+      </form>
+    </mat-card>
+  } @else {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Open a new account</mat-card-title>
+      </mat-card-header>
+      <form [formGroup]="form" (ngSubmit)="createAccount()">
+        <mat-card-content>
+          <div class="field-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Account type</mat-label>
+              <mat-select formControlName="type">
+                @for (type of accountTypes; track type) {
+                  <mat-option [value]="type">{{ type }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Currency</mat-label>
+              <input matInput formControlName="currency" maxlength="3" placeholder="USD" style="text-transform: uppercase" />
+              <mat-hint>3-letter ISO code</mat-hint>
+              @if (form.controls.currency.invalid && form.controls.currency.touched) {
+                <mat-error>Enter a valid 3-letter currency code</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-flat-button color="primary" type="submit" [disabled]="creating()">
+            @if (creating()) {
+              <mat-progress-spinner class="btn-spinner" diameter="18" mode="indeterminate" />
+            } @else {
+              <mat-icon>add</mat-icon>
+            }
+            Open account
+          </button>
+        </mat-card-actions>
+      </form>
+    </mat-card>
+  }
+
+  @if (loading()) {
+    <div class="loading-row">
+      <mat-progress-spinner diameter="36" mode="indeterminate" />
+      <span>Loading accounts&hellip;</span>
+    </div>
+  } @else if (accounts().length === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-state-icon">account_balance</mat-icon>
+      <span class="empty-state-title">No accounts yet</span>
+      <span class="empty-state-body">
+        {{ isStaff ? 'No accounts match this tenant or filter.' : 'Open one above to start banking.' }}
+      </span>
+    </div>
+  } @else {
+    <mat-card>
+      <mat-card-content>
+        <div class="account-rows">
+          @for (account of accounts(); track account.id) {
+            <a class="account-row" [routerLink]="['/accounts', account.id]">
+              <mat-icon>account_balance_wallet</mat-icon>
+              <div class="account-info">
+                <div>{{ account.type }} &middot; {{ account.currency }}</div>
+                <div class="muted">
+                  {{ isStaff ? 'Customer ' + account.customerId.slice(0, 8) + '…' : account.id }}
+                </div>
+              </div>
+              <app-status-chip class="account-status" [status]="account.status" />
+              <mat-icon class="chevron">chevron_right</mat-icon>
+            </a>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
